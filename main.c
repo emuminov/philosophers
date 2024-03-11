@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/03/11 09:55:12 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/03/11 13:25:54 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <pthread.h>
 
 typedef	pthread_mutex_t t_fork;
@@ -45,6 +46,25 @@ void	terminate(char *msg)
 	exit(EXIT_FAILURE);
 }
 
+static inline bool	ft_isdigit(int d)
+{
+	return (d >= '0' && d <= '9');
+}
+
+bool	is_numeric(char *str)
+{
+	size_t	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (!ft_isdigit(str[i]))
+			return (false);
+		i++;
+	}
+	return (true);
+}
+
 void	params_init(int argc, char **argv, t_params *params)
 {
 	params->philo_nbr = atol(argv[1]);
@@ -57,8 +77,17 @@ void	params_init(int argc, char **argv, t_params *params)
 		params->max_nbr_of_meals = atol(argv[5]);
 }
 
-void	params_validate(t_params *params)
+void	params_validate(char **argv, t_params *params)
 {
+	int	i;
+
+	i = 0;
+	while (argv[i])
+	{
+		if (is_numeric(argv[i]) == false)
+			terminate("Non-numeric input\n");
+		i++;
+	}
 	if (params->philo_nbr <= 0 || params->philo_nbr > INT_MAX)
 		terminate("Wrong number of philosophers\n");
 	else if (params->time_to_die <= 0 || params->time_to_die > INT_MAX)
@@ -72,7 +101,7 @@ void	params_validate(t_params *params)
 void	parse_input(int argc, char **argv, t_params *params)
 {
 	params_init(argc, argv, params);
-	params_validate(params);
+	params_validate(argv, params);
 	
 }
 
