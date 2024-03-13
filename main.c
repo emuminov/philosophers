@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/03/13 10:28:15 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/03/13 10:29:15 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ void	parse_input(int argc, char **argv, t_params *params)
 
 int	main(int argc, char **argv)
 {
-	t_params	params;
+	static t_params	params;
 
 	if (argc < 4 || argc > 6)
 		exit(EXIT_FAILURE);
