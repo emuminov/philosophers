@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/03/11 13:25:54 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/03/13 10:28:15 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,22 +21,22 @@ typedef	pthread_mutex_t t_fork;
 
 typedef struct	s_philo
 {
-	long	index;
-	long	last_eat_time;
-	long	meals_counter;
-	int		state;
-	t_fork	left_fork;
-	t_fork	*right_fork;
+	unsigned int	index;
+	unsigned int	last_eat_time;
+	unsigned int	meals_counter;
+	int				state;
+	t_fork			left_fork;
+	t_fork			*right_fork;
 }				t_philo;
 
 typedef struct	s_params
 {
-	long	philo_nbr;
-	long	time_to_die;
-	long	time_to_eat;
-	long	time_to_sleep;
-	long	max_nbr_of_meals;
-	t_philo	*philos;
+	unsigned int	philo_nbr;
+	unsigned int	time_to_die;
+	unsigned int	time_to_eat;
+	unsigned int	time_to_sleep;
+	unsigned int	max_nbr_of_meals;
+	t_philo			*philos;
 }				t_params;
 
 void	terminate(char *msg)
