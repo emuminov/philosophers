@@ -6,49 +6,54 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/03/13 13:22:12 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/03/14 12:09:14 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <limits.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdbool.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #define MAX_PHILO_NUMBER 200
 
-enum states
+enum					states
 {
 	THINKING,
 	EATING,
 	SLEEPING,
 };
 
-typedef	pthread_mutex_t t_fork;
+typedef pthread_mutex_t	t_mtx;
+typedef struct s_params	t_params;
 
-typedef struct	s_philo
+typedef struct s_philo
 {
-	pthread_t		th;
-	unsigned int	index;
-	unsigned int	meals_counter;
-	unsigned long	last_eat_time;
-	int				state;
-	t_fork			right_fork;
-	t_fork			*left_fork;
-}				t_philo;
+	pthread_t			th;
+	unsigned int		index;
+	unsigned int		meals_counter;
+	unsigned long		last_eat_time;
+	int					state;
+	t_mtx				right_fork;
+	t_mtx				*left_fork;
+	t_params			*params;
+}						t_philo;
 
-typedef struct	s_params
+typedef struct s_params
 {
-	unsigned int	philo_nbr;
-	unsigned long	time_to_die;
-	unsigned long	time_to_eat;
-	unsigned long	time_to_sleep;
-	unsigned int	max_nbr_of_meals;
-	t_philo			philos[MAX_PHILO_NUMBER];
-}				t_params;
+	unsigned int		philo_nbr;
+	unsigned long		time_to_die;
+	unsigned long		time_to_eat;
+	unsigned long		time_to_sleep;
+	unsigned int		max_nbr_of_meals;
+	unsigned int		threads_ready;
+	t_philo				philos[MAX_PHILO_NUMBER];
+	t_mtx				mtx_sync;
+	t_mtx				mtx_print;
+}						t_params;
 
 void	terminate(char *msg)
 {
@@ -60,6 +65,30 @@ void	terminate(char *msg)
 static inline bool	ft_isdigit(int d)
 {
 	return (d >= '0' && d <= '9');
+}
+
+static int	ft_isspace(int c)
+{
+	return (c == '\t' || c == ' ' || c == '\r'
+		|| c == '\v' || c == '\n' || c == '\f');
+}
+
+long	ft_atol(const char *str)
+{
+	long long	result;
+	short		sign;
+	size_t		i;
+
+	result = 0;
+	i = 0;
+	while (ft_isspace(str[i]))
+		i++;
+	sign = ((str[i] == '-') * -1) + ((str[i] != '-') * 1);
+	if (str[i] == '-' || str[i] == '+')
+		i++;
+	while (str[i] && ft_isdigit(str[i]))
+		result = (result * 10) + (str[i++] - '0');
+	return (result * sign);
 }
 
 unsigned long	get_time(void)
@@ -101,8 +130,9 @@ bool	is_numeric(char *str)
 
 static inline void	validate_input_being_numeric(char **argv)
 {
-	int		i;
-	i = -1;
+	int	i;
+
+	i = 0;
 	while (argv[++i])
 		if (is_numeric(argv[i]) == false)
 			terminate("Non-numeric input\n");
@@ -116,11 +146,12 @@ static inline void	validate_input_bounds(char **argv)
 	long	time_to_sleep;
 	long	max_nbr_of_meals;
 
-	philo_nbr = atol(argv[1]);
-	time_to_die = atol(argv[2]);
-	time_to_eat = atol(argv[3]);
-	time_to_sleep = atol(argv[4]);
-	max_nbr_of_meals = atol(argv[5]);
+	philo_nbr = ft_atol(argv[1]);
+	time_to_die = ft_atol(argv[2]);
+	time_to_eat = ft_atol(argv[3]);
+	time_to_sleep = ft_atol(argv[4]);
+	if (argv[5])
+		max_nbr_of_meals = ft_atol(argv[5]);
 	if (philo_nbr <= 0 || philo_nbr > MAX_PHILO_NUMBER)
 		terminate("Wrong number of philosophers\n");
 	else if (time_to_die <= 0 || time_to_die > INT_MAX)
@@ -129,7 +160,7 @@ static inline void	validate_input_bounds(char **argv)
 		terminate("Bad time to eat\n");
 	else if (time_to_sleep <= 0 || time_to_sleep > INT_MAX)
 		terminate("Bad time to sleep\n");
-	else if (max_nbr_of_meals <= 0 || max_nbr_of_meals > INT_MAX)
+	else if (argv[5] && (max_nbr_of_meals <= 0 || max_nbr_of_meals > INT_MAX))
 		terminate("Bad time to sleep\n");
 }
 
@@ -141,14 +172,18 @@ void	validate_input(char **argv)
 
 void	params_init(int argc, char **argv, t_params *p)
 {
-	p->philo_nbr = atoi(argv[1]);
-	p->time_to_die = atoi(argv[2]);
-	p->time_to_eat = atoi(argv[2]);
-	p->time_to_sleep = atoi(argv[3]);
+	p->philo_nbr = ft_atol(argv[1]);
+	p->time_to_die = ft_atol(argv[2]);
+	p->time_to_eat = ft_atol(argv[2]);
+	p->time_to_sleep = ft_atol(argv[3]);
 	if (argc == 5)
 		p->max_nbr_of_meals = -1;
 	if (argc == 6)
-		p->max_nbr_of_meals = atoi(argv[5]);
+		p->max_nbr_of_meals = ft_atol(argv[5]);
+	pthread_mutex_init(&p->mtx_print, NULL);
+	// TODO: protect mutex
+	pthread_mutex_init(&p->mtx_sync, NULL);
+	// TODO: protect mutex
 }
 
 void	parse_input(int argc, char **argv, t_params *p)
@@ -157,10 +192,10 @@ void	parse_input(int argc, char **argv, t_params *p)
 	params_init(argc, argv, p);
 }
 
-t_philo	init_philo(unsigned int index)
+t_philo	init_philo(unsigned int index, t_params *p)
 {
 	t_philo	philo;
-	t_fork	right_fork;
+	t_mtx	right_fork;
 
 	pthread_mutex_init(&right_fork, NULL);
 	philo.index = index + 1;
@@ -169,6 +204,7 @@ t_philo	init_philo(unsigned int index)
 	philo.state = THINKING;
 	philo.right_fork = right_fork;
 	philo.left_fork = NULL;
+	philo.params = p;
 	return (philo);
 }
 
@@ -187,14 +223,14 @@ void	connect_philos_forks(unsigned int philos_nbr, t_philo *philos)
 	}
 }
 
-void	arbiter()
+void	arbiter(void)
 {
 	// while 1
 	//   time = get_time()
 	//   while philos
 	//     if time - current_philo.last_meal <= 0
 	//       end dinner
-	//     
+	//
 }
 
 void	*philo_routine(void *data)
@@ -203,6 +239,18 @@ void	*philo_routine(void *data)
 
 	philo = (t_philo *)data;
 	// wait for the creation of all threads
+	pthread_mutex_lock(&philo->params->mtx_print);
+	printf("Philo id: %d\n", philo->index);
+	pthread_mutex_unlock(&philo->params->mtx_print);
+	pthread_mutex_lock(&philo->params->mtx_sync);
+	philo->params->threads_ready++;
+	pthread_mutex_unlock(&philo->params->mtx_sync);
+	while (philo->params->threads_ready < philo->params->philo_nbr)
+		;
+	pthread_mutex_lock(&philo->params->mtx_print);
+	printf("Philo id: %d\tThreads ready: %d\n", philo->index,
+		philo->params->threads_ready);
+	pthread_mutex_unlock(&philo->params->mtx_print);
 	// if game is not started
 	//   philos starting from 0 start to eat
 	//   the rest thinks
@@ -227,7 +275,7 @@ void	init_philos_arr(t_params *p)
 	i = 0;
 	while (i < p->philo_nbr)
 	{
-		p->philos[i] = init_philo(i);
+		p->philos[i] = init_philo(i, p);
 		i++;
 	}
 	connect_philos_forks(p->philo_nbr, p->philos);
@@ -239,8 +287,6 @@ void	init_philos_arr(t_params *p)
 		i++;
 	}
 }
-
-
 
 int	main(int argc, char **argv)
 {
