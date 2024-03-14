@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/03/14 12:09:14 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/03/14 16:34:21 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,15 +242,15 @@ void	*philo_routine(void *data)
 	pthread_mutex_lock(&philo->params->mtx_print);
 	printf("Philo id: %d\n", philo->index);
 	pthread_mutex_unlock(&philo->params->mtx_print);
-	pthread_mutex_lock(&philo->params->mtx_sync);
-	philo->params->threads_ready++;
-	pthread_mutex_unlock(&philo->params->mtx_sync);
-	while (philo->params->threads_ready < philo->params->philo_nbr)
-		;
-	pthread_mutex_lock(&philo->params->mtx_print);
-	printf("Philo id: %d\tThreads ready: %d\n", philo->index,
-		philo->params->threads_ready);
-	pthread_mutex_unlock(&philo->params->mtx_print);
+	// pthread_mutex_lock(&philo->params->mtx_sync);
+	// philo->params->threads_ready++;
+	// pthread_mutex_unlock(&philo->params->mtx_sync);
+	// while (philo->params->threads_ready < philo->params->philo_nbr)
+	// 	;
+	// pthread_mutex_lock(&philo->params->mtx_print);
+	// printf("Philo id: %d\tThreads ready: %d\n", philo->index,
+	// 	philo->params->threads_ready);
+	// pthread_mutex_unlock(&philo->params->mtx_print);
 	// if game is not started
 	//   philos starting from 0 start to eat
 	//   the rest thinks
@@ -296,5 +296,9 @@ int	main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	parse_input(argc, argv, &p);
 	init_philos_arr(&p);
+	for (unsigned int i = 0; i < p.philo_nbr; i++)
+	{
+		pthread_join(p.philos[i].th, NULL);
+	}
 	return (EXIT_SUCCESS);
 }
