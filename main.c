@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/24 20:28:42 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/25 17:07:58 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,6 @@ typedef struct s_params
 	unsigned long		time_to_sleep;
 	unsigned long		start_time;
 	unsigned int		max_nbr_of_meals;
-	unsigned int		threads_ready;
 	unsigned int		is_running;
 	t_philo				philos[MAX_PHILO_NUMBER];
 	t_mtx				sync_lock;
@@ -243,75 +242,87 @@ int	get_or_set_is_running(t_params *p, int val, enum e_flag f)
 		p->is_running = val;
 	is_running = p->is_running;
 	pthread_mutex_unlock(&p->sync_lock);
+	// pthread_mutex_lock(&p->write_lock);
+	// printf("Program is running %d\n", is_running);
+	// pthread_mutex_unlock(&p->write_lock);
 	return (is_running);
+}
+
+enum e_status
+{
+	THONK,
+	FORK,
+	EAT,
+	SLEEP,
+	DIE,
+};
+
+void	write_status(t_philo *philo, enum e_status s, int is_allowed)
+{
+	pthread_mutex_lock(&philo->params->write_lock);
+	if ((!get_or_set_is_running(philo->params, -1, GET)) && !is_allowed)
+	{
+		pthread_mutex_unlock(&philo->params->write_lock);
+		return ;
+	}
+	if (s == THONK)
+		printf("%lu %u is thinking\n", (get_time() - philo->params->start_time),
+				philo->index);
+	else if (s == FORK)
+		printf("%lu %u has taken a fork\n", (get_time() - philo->params->start_time),
+				philo->index);
+	else if (s == EAT)
+		printf("%lu %u is eating\n", (get_time() - philo->params->start_time),
+				philo->index);
+	else if (s == SLEEP)
+		printf("%lu %u is sleeping\n", (get_time() - philo->params->start_time),
+				philo->index);
+	else if (s == DIE)
+		printf("%lu %u died\n", (get_time() - philo->params->start_time),
+				philo->index);
+	pthread_mutex_unlock(&philo->params->write_lock);
 }
 
 void	think(t_philo *philo)
 {
 	if (get_or_set_is_running(philo->params, -1, GET))
-	{
-		pthread_mutex_lock(&philo->params->write_lock);
-		printf("%lu %u is thinking\n", (get_time() - philo->params->start_time), philo->index);
-		pthread_mutex_unlock(&philo->params->write_lock);
-	}
+		write_status(philo, THONK, 0);
 }
 
 void	take_forks(t_philo *philo)
 {
-	if (get_or_set_is_running(philo->params, -1, GET))
-	{
-		pthread_mutex_lock(&philo->right_fork);
-		pthread_mutex_lock(&philo->params->write_lock);
-		printf("%lu %u has taken a fork\n", get_time() - philo->params->start_time, philo->index);
-		pthread_mutex_unlock(&philo->params->write_lock);
-		pthread_mutex_lock(philo->left_fork);
-		pthread_mutex_lock(&philo->params->write_lock);
-		printf("%lu %u has taken a fork\n", get_time() - philo->params->start_time, philo->index);
-		pthread_mutex_unlock(&philo->params->write_lock);
-	}
+	pthread_mutex_lock(&philo->right_fork);
+	write_status(philo, FORK, 0);
+	pthread_mutex_lock(philo->left_fork);
+	write_status(philo, FORK, 0);
 }
 
 void	eat(t_philo *philo)
 {
 	if (get_or_set_is_running(philo->params, -1, GET))
 	{
-		pthread_mutex_lock(&philo->params->write_lock);
-		printf("%lu %u is eating\n", get_time() - philo->params->start_time, philo->index);
-		pthread_mutex_unlock(&philo->params->write_lock);
+		write_status(philo, EAT, 0);
 		pthread_mutex_lock(&philo->meal_lock);
 		philo->last_meal_time = get_time();
 		pthread_mutex_unlock(&philo->meal_lock);
 		ft_usleep(philo->params->time_to_eat);
-		pthread_mutex_unlock(philo->left_fork);
-		pthread_mutex_unlock(&philo->right_fork);
 	}
+	pthread_mutex_unlock(&philo->right_fork);
+	pthread_mutex_unlock(philo->left_fork);
 }
 
 void	die(t_philo *philo)
 {
-	pthread_mutex_lock(&philo->params->write_lock);
-	printf("%lu %u died\n", get_time() - philo->params->start_time, philo->index);
-	pthread_mutex_unlock(&philo->params->write_lock);
+	write_status(philo, DIE, 1);
 }
 
 void	philo_sleep(t_philo *philo)
 {
 	if (get_or_set_is_running(philo->params, -1, GET))
 	{
-		pthread_mutex_lock(&philo->params->write_lock);
-		printf("%lu %u is sleeping\n", get_time() - philo->params->start_time, philo->index);
-		pthread_mutex_unlock(&philo->params->write_lock);
+		write_status(philo, SLEEP, 0);
 		ft_usleep(philo->params->time_to_sleep);
 	}
-}
-
-void	sync_philos(t_philo *philo)
-{
-	pthread_mutex_lock(&philo->params->sync_lock);
-	philo->params->threads_ready += 1;
-	pthread_mutex_unlock(&philo->params->sync_lock);
-	while (philo->params->threads_ready < philo->params->philo_nbr)
-		;
 }
 
 void	*philo_routine(void *data)
@@ -322,22 +333,12 @@ void	*philo_routine(void *data)
 	think(philo);
 	if (philo->index % 2 == 0)
 		ft_usleep(10);
-	while (get_or_set_is_running(philo->params, -1, GET))
+	while (get_or_set_is_running(philo->params, -1, GET) == 1)
 	{
-		if (!get_or_set_is_running(philo->params, -1, GET))
-			break ;
 		take_forks(philo);
-		if (!get_or_set_is_running(philo->params, -1, GET))
-			break ;
 		eat(philo);
-		if (!get_or_set_is_running(philo->params, -1, GET))
-			break ;
 		philo_sleep(philo);
-		if (!get_or_set_is_running(philo->params, -1, GET))
-			break ;
 		think(philo);
-		if (!get_or_set_is_running(philo->params, -1, GET))
-			break ;
 	}
 	return (NULL);
 }
@@ -357,7 +358,6 @@ void	init_philos(t_params *p)
 	while (i < p->philo_nbr)
 	{
 		pthread_create(&p->philos[i].th, NULL, philo_routine, &p->philos[i]);
-		// TODO: protect thread creation
 		i++;
 	}
 }
@@ -369,10 +369,8 @@ int	check_if_philo_should_be_dead(t_philo *philo, t_params *p)
 	pthread_mutex_lock(&philo->meal_lock);
 	last_meal_time_diff = get_time() - philo->last_meal_time;
 	pthread_mutex_unlock(&philo->meal_lock);
-	pthread_mutex_lock(&philo->params->write_lock);
-	printf("Last meal time: %lu\nTime to die: %lu\n===\n", last_meal_time_diff, p->time_to_die);
-	pthread_mutex_unlock(&philo->params->write_lock);
-	if (last_meal_time_diff > p->time_to_die)
+	// printf("%u philo ate %lu ms ago\n", philo->index, last_meal_time_diff);
+	if (last_meal_time_diff >= p->time_to_die)
 		return (1);
 	return (0);
 }
@@ -406,12 +404,14 @@ void	*monitor_routine(void *data)
 		{
 			if (check_if_philo_should_be_dead(&p->philos[i], p))
 			{
-				get_or_set_is_running(p, 0, SET);
+				pthread_mutex_lock(&p->sync_lock);
+				p->is_running = 0;
+				pthread_mutex_unlock(&p->sync_lock);
 				die(&p->philos[i]);
-				stop_program(p);
+				return (NULL);
 			}
 			i++;
-			ft_usleep(50);
+			ft_usleep(2);
 		}
 	}
 	return (NULL);
@@ -426,6 +426,7 @@ void	init_monitor(t_params *p)
 int	main(int argc, char **argv)
 {
 	static t_params	p;
+	unsigned int	i;
 
 	if (argc != 5 && argc != 6)
 		exit(EXIT_FAILURE);
@@ -435,5 +436,14 @@ int	main(int argc, char **argv)
 	for (unsigned int i = 0; i < p.philo_nbr; i++)
 		pthread_join(p.philos[i].th, NULL);
 	pthread_join(p.monitor_th, NULL);
+	pthread_mutex_destroy(&p.sync_lock);
+	pthread_mutex_destroy(&p.write_lock);
+	i = 0;
+	while (i < p.philo_nbr)
+	{
+		pthread_mutex_destroy(&p.philos[i].meal_lock);
+		pthread_mutex_destroy(p.philos[i].left_fork);
+		i++;
+	}
 	return (EXIT_SUCCESS);
 }
