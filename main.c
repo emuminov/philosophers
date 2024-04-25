@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/25 17:40:16 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/25 20:46:54 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -291,10 +291,20 @@ void	think(t_philo *philo)
 
 void	take_forks(t_philo *philo)
 {
-	pthread_mutex_lock(&philo->right_fork);
-	write_status(philo, FORK, 0);
-	pthread_mutex_lock(philo->left_fork);
-	write_status(philo, FORK, 0);
+	if (philo->index == philo->params->philo_nbr)
+	{
+		pthread_mutex_lock(philo->left_fork);
+		write_status(philo, FORK, 0);
+		pthread_mutex_lock(&philo->right_fork);
+		write_status(philo, FORK, 0);
+	}
+	else
+	{
+		pthread_mutex_lock(&philo->right_fork);
+		write_status(philo, FORK, 0);
+		pthread_mutex_lock(philo->left_fork);
+		write_status(philo, FORK, 0);
+	}
 }
 
 void	eat(t_philo *philo)
