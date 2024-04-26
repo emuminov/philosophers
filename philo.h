@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:28:53 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 17:03:50 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/26 17:14:47 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,12 @@
 
 # define MAX_PHILO_NUMBER 200
 # ifdef COLORED
-#  define RESET "\x1B[0m"
+#  define RES "\x1B[0m"
 #  define RED "\033[0;31m"
 #  define GREEN "\033[0;32m"
 #  define GRAY "\033[0;36m"
 # else
-#  define RESET ""
+#  define RES ""
 #  define RED ""
 #  define GREEN ""
 #  define GRAY ""
@@ -42,6 +42,7 @@ enum					e_error
 	BAD_EAT_TIME,
 	BAD_SLEEP_TIME,
 	BAD_MEALS_NUM,
+	BAD_ARGS_NUMBER,
 };
 
 enum					e_status
@@ -102,7 +103,7 @@ unsigned long			diff(unsigned long timestamp);
 void					ft_usleep(unsigned long ms);
 
 // validation.c
-enum e_error			validate_input(char **argv);
+enum e_error			validate_input(int argc, char **argv);
 
 // write_functions.c
 void					write_status(t_philo *philo, enum e_status s,
