@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:28:53 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 14:30:06 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/26 17:03:50 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,17 +21,32 @@
 # include <unistd.h>
 
 # define MAX_PHILO_NUMBER 200
+# ifdef COLORED
+#  define RESET "\x1B[0m"
+#  define RED "\033[0;31m"
+#  define GREEN "\033[0;32m"
+#  define GRAY "\033[0;36m"
+# else
+#  define RESET ""
+#  define RED ""
+#  define GREEN ""
+#  define GRAY ""
+# endif
 
-enum					states
+enum					e_error
 {
-	THINKING,
-	EATING,
-	SLEEPING,
+	NO_ERRORS,
+	NON_NUMERIC,
+	BAD_PHILO_NUM,
+	BAD_DIE_TIME,
+	BAD_EAT_TIME,
+	BAD_SLEEP_TIME,
+	BAD_MEALS_NUM,
 };
 
 enum					e_status
 {
-	THONK,
+	THINK,
 	FORK,
 	EAT,
 	SLEEP,
@@ -53,7 +68,6 @@ typedef struct s_philo
 	unsigned int		index;
 	unsigned int		meals_counter;
 	unsigned long		last_meal_time;
-	int					state;
 	t_mtx				meal_lock;
 	t_mtx				right_fork;
 	t_mtx				*left_fork;
@@ -75,4 +89,43 @@ typedef struct s_params
 	t_mtx				sync_lock;
 	t_mtx				write_lock;
 }						t_params;
+
+// ft_utils.c
+bool					ft_isdigit(int d);
+bool					ft_isspace(int c);
+long					ft_atol(const char *str);
+void					ft_putstr_err(char *msg);
+
+// time_utils.c
+unsigned long			get_time(void);
+unsigned long			diff(unsigned long timestamp);
+void					ft_usleep(unsigned long ms);
+
+// validation.c
+enum e_error			validate_input(char **argv);
+
+// write_functions.c
+void					write_status(t_philo *philo, enum e_status s,
+							bool is_allowed);
+void					write_error(enum e_error e);
+
+// get_set.c
+unsigned int			get_or_set_is_running(t_params *p, int val,
+							enum e_flag f);
+unsigned int			get_or_set_meals_counter(t_philo *philo, int val,
+							enum e_flag f);
+
+// philo_routine.c
+void					take_forks_from_left(t_philo *philo);
+void					take_forks_from_right(t_philo *philo);
+void					*philo_routine(void *data);
+
+// monitor_routine.c
+void					*monitor_routine(void *data);
+
+// init_program.c
+void					init(int argc, char **argv, t_params *p);
+
+// cleanup
+void					cleanup(t_params *p);
 #endif
