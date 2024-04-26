@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 17:02:23 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/26 17:13:25 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,14 @@
 int	main(int argc, char **argv)
 {
 	static t_params	p;
+	enum e_error	e;
 
-	if (argc != 5 && argc != 6)
+	e = validate_input(argc, argv);
+	if (e != NO_ERRORS)
+	{
+		write_error(e);
 		return (EXIT_FAILURE);
-	// validate input
+	}
 	init(argc, argv, &p);
 	cleanup(&p);
 	return (EXIT_SUCCESS);

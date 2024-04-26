@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:37:12 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 15:06:27 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/26 17:13:13 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,10 +53,12 @@ static enum e_error	validate_input_bounds(char **argv)
 	return (NO_ERRORS);
 }
 
-enum e_error	validate_input(char **argv)
+enum e_error	validate_input(int argc, char **argv)
 {
 	int	i;
 
+	if (argc != 5 && argc != 6)
+		return (BAD_ARGS_NUMBER);
 	i = 0;
 	while (argv[++i])
 		if (!is_numeric(argv[i]))
