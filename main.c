@@ -6,57 +6,11 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 14:14:04 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/25 20:46:54 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/26 14:30:24 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <limits.h>
-#include <pthread.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <unistd.h>
-
-#define MAX_PHILO_NUMBER 200
-
-enum					states
-{
-	THINKING,
-	EATING,
-	SLEEPING,
-};
-
-typedef pthread_mutex_t	t_mtx;
-typedef struct s_params	t_params;
-
-typedef struct s_philo
-{
-	pthread_t			th;
-	unsigned int		index;
-	unsigned int		meals_counter;
-	unsigned long		last_meal_time;
-	int					state;
-	t_mtx				meal_lock;
-	t_mtx				right_fork;
-	t_mtx				*left_fork;
-	t_params			*params;
-}						t_philo;
-
-typedef struct s_params
-{
-	pthread_t			monitor_th;
-	unsigned int		philo_nbr;
-	unsigned long		time_to_die;
-	unsigned long		time_to_eat;
-	unsigned long		time_to_sleep;
-	unsigned long		start_time;
-	unsigned int		max_nbr_of_meals;
-	unsigned int		is_running;
-	t_philo				philos[MAX_PHILO_NUMBER];
-	t_mtx				sync_lock;
-	t_mtx				write_lock;
-}						t_params;
+#include "philo.h"
 
 void	terminate(char *msg)
 {
@@ -72,8 +26,8 @@ static inline bool	ft_isdigit(int d)
 
 static int	ft_isspace(int c)
 {
-	return (c == '\t' || c == ' ' || c == '\r'
-		|| c == '\v' || c == '\n' || c == '\f');
+	return (c == '\t' || c == ' ' || c == '\r' || c == '\v' || c == '\n'
+		|| c == '\f');
 }
 
 bool	is_numeric(char *str)
@@ -167,10 +121,67 @@ static inline void	validate_input_bounds(char **argv)
 		terminate("Bad time to sleep\n");
 }
 
+int	get_or_set_is_running(t_params *p, int val, enum e_flag f)
+{
+	int	is_running;
+
+	pthread_mutex_lock(&p->sync_lock);
+	if (f == SET)
+		p->is_running = val;
+	is_running = p->is_running;
+	pthread_mutex_unlock(&p->sync_lock);
+	// pthread_mutex_lock(&p->write_lock);
+	// printf("Program is running %d\n", is_running);
+	// pthread_mutex_unlock(&p->write_lock);
+	return (is_running);
+}
+
+void	write_status(t_philo *philo, enum e_status s, int is_allowed)
+{
+	pthread_mutex_lock(&philo->params->write_lock);
+	if ((!get_or_set_is_running(philo->params, -1, GET)) && !is_allowed)
+	{
+		pthread_mutex_unlock(&philo->params->write_lock);
+		return ;
+	}
+	if (s == THONK)
+		printf("%lu %u is thinking\n", (get_time() - philo->params->start_time),
+			philo->index);
+	else if (s == FORK)
+		printf("%lu %u has taken a fork\n", (get_time()
+				- philo->params->start_time), philo->index);
+	else if (s == EAT)
+		printf("%lu %u is eating\n", (get_time() - philo->params->start_time),
+			philo->index);
+	else if (s == SLEEP)
+		printf("%lu %u is sleeping\n", (get_time() - philo->params->start_time),
+			philo->index);
+	else if (s == DIE)
+		printf("%lu %u died\n", (get_time() - philo->params->start_time),
+			philo->index);
+	pthread_mutex_unlock(&philo->params->write_lock);
+}
+
 void	validate_input(char **argv)
 {
 	validate_input_being_numeric(argv);
 	validate_input_bounds(argv);
+}
+
+void	take_forks_from_left(t_philo *philo)
+{
+	pthread_mutex_lock(philo->left_fork);
+	write_status(philo, FORK, 0);
+	pthread_mutex_lock(&philo->right_fork);
+	write_status(philo, FORK, 0);
+}
+
+void	take_forks_from_right(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->right_fork);
+	write_status(philo, FORK, 0);
+	pthread_mutex_lock(philo->left_fork);
+	write_status(philo, FORK, 0);
 }
 
 void	init_params(int argc, char **argv, t_params *p)
@@ -197,13 +208,17 @@ void	parse_input(int argc, char **argv, t_params *p)
 	init_params(argc, argv, p);
 }
 
-t_philo	init_philo(unsigned int index, t_params *p)
+t_philo	init_philo(unsigned int i, t_params *p)
 {
 	t_philo	philo;
 
 	pthread_mutex_init(&philo.right_fork, NULL);
 	pthread_mutex_init(&philo.meal_lock, NULL);
-	philo.index = index + 1;
+	philo.index = i + 1;
+	if (philo.index == p->philo_nbr)
+		philo.take_forks = take_forks_from_left;
+	else
+		philo.take_forks = take_forks_from_right;
 	philo.last_meal_time = p->start_time;
 	philo.meals_counter = 0;
 	philo.state = THINKING;
@@ -227,84 +242,10 @@ void	connect_philos_forks(unsigned int philos_nbr, t_philo *philos)
 	}
 }
 
-enum e_flag
-{
-	GET,
-	SET,
-};
-
-int	get_or_set_is_running(t_params *p, int val, enum e_flag f)
-{
-	int	is_running;
-
-	pthread_mutex_lock(&p->sync_lock);
-	if (f == SET)
-		p->is_running = val;
-	is_running = p->is_running;
-	pthread_mutex_unlock(&p->sync_lock);
-	// pthread_mutex_lock(&p->write_lock);
-	// printf("Program is running %d\n", is_running);
-	// pthread_mutex_unlock(&p->write_lock);
-	return (is_running);
-}
-
-enum e_status
-{
-	THONK,
-	FORK,
-	EAT,
-	SLEEP,
-	DIE,
-};
-
-void	write_status(t_philo *philo, enum e_status s, int is_allowed)
-{
-	pthread_mutex_lock(&philo->params->write_lock);
-	if ((!get_or_set_is_running(philo->params, -1, GET)) && !is_allowed)
-	{
-		pthread_mutex_unlock(&philo->params->write_lock);
-		return ;
-	}
-	if (s == THONK)
-		printf("%lu %u is thinking\n", (get_time() - philo->params->start_time),
-				philo->index);
-	else if (s == FORK)
-		printf("%lu %u has taken a fork\n", (get_time() - philo->params->start_time),
-				philo->index);
-	else if (s == EAT)
-		printf("%lu %u is eating\n", (get_time() - philo->params->start_time),
-				philo->index);
-	else if (s == SLEEP)
-		printf("%lu %u is sleeping\n", (get_time() - philo->params->start_time),
-				philo->index);
-	else if (s == DIE)
-		printf("%lu %u died\n", (get_time() - philo->params->start_time),
-				philo->index);
-	pthread_mutex_unlock(&philo->params->write_lock);
-}
-
 void	think(t_philo *philo)
 {
 	if (get_or_set_is_running(philo->params, -1, GET))
 		write_status(philo, THONK, 0);
-}
-
-void	take_forks(t_philo *philo)
-{
-	if (philo->index == philo->params->philo_nbr)
-	{
-		pthread_mutex_lock(philo->left_fork);
-		write_status(philo, FORK, 0);
-		pthread_mutex_lock(&philo->right_fork);
-		write_status(philo, FORK, 0);
-	}
-	else
-	{
-		pthread_mutex_lock(&philo->right_fork);
-		write_status(philo, FORK, 0);
-		pthread_mutex_lock(philo->left_fork);
-		write_status(philo, FORK, 0);
-	}
 }
 
 void	eat(t_philo *philo)
@@ -346,7 +287,7 @@ void	*philo_routine(void *data)
 		ft_usleep(10);
 	while (get_or_set_is_running(philo->params, -1, GET) == 1)
 	{
-		take_forks(philo);
+		philo->take_forks(philo);
 		eat(philo);
 		philo_sleep(philo);
 		think(philo);
@@ -420,7 +361,8 @@ int	check_if_philos_ate_all_their_meals(t_params *p)
 	i = 0;
 	while (i < p->philo_nbr)
 	{
-		if (get_or_set_meals_counter(&p->philos[i], -1, GET) < p->max_nbr_of_meals)
+		if (get_or_set_meals_counter(&p->philos[i], -1,
+				GET) < p->max_nbr_of_meals)
 			return (0);
 		i++;
 	}
