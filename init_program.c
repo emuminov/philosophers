@@ -72,7 +72,7 @@ void	init(int argc, char **argv, t_params *p)
 	p->time_to_sleep = ft_atol(argv[4]);
 	p->is_running = 1;
 	if (argc == 5)
-		p->max_nbr_of_meals = -1;
+		p->max_nbr_of_meals = UINT_MAX;
 	if (argc == 6)
 		p->max_nbr_of_meals = ft_atol(argv[5]);
 	p->start_time = get_time();
