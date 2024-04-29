@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:10:59 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 17:21:00 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:51:17 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,6 @@ void	take_forks_from_right(t_philo *philo)
 
 static void	alternate(t_philo *philo)
 {
-	if (get_or_set_is_running(philo->params, -1, GET))
-		write_status(philo, THINK, 0);
 	philo->take_forks(philo);
 	if (get_or_set_is_running(philo->params, -1, GET))
 	{
@@ -49,6 +47,8 @@ static void	alternate(t_philo *philo)
 		write_status(philo, SLEEP, 0);
 		ft_usleep(philo->params->time_to_sleep);
 	}
+	if (get_or_set_is_running(philo->params, -1, GET))
+		write_status(philo, THINK, 0);
 }
 
 void	*solo_routine(void *data)
@@ -76,6 +76,7 @@ void	*philo_routine(void *data)
 	get_or_increment_threads_ready(philo->params, SET);
 	wait_for_all_threads(philo->params);
 	wait_for_time_sync(philo->params);
+	write_status(philo, THINK, false);
 	if (philo->index % 2 == 0)
 		ft_usleep(10);
 	while (get_or_set_is_running(philo->params, -1, GET) == 1)

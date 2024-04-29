@@ -1,5 +1,5 @@
 #compilation vars-------------
-CFLAGS=-Wall -Wextra -Werror -g3 -D COLORED -fsanitize=address
+CFLAGS=-Wall -Wextra -Werror -g3 -fsanitize=address
 
 #names and folders------------
 NAME=philo
