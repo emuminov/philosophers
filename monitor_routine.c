@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:15:56 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 15:55:59 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 16:00:46 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ static void	sync_time(t_params *p)
 {
 	unsigned long	start_time;
 	unsigned int	i;
-	
+
 	start_time = get_time();
 	i = 0;
 	while (i < p->philo_nbr)
