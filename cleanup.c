@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:02:36 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 17:11:09 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:45:03 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,7 @@ void	cleanup(t_params *p)
 		pthread_join(p->philos[i].th, NULL);
 		i++;
 	}
-	if (p->philo_nbr > 1)
-		pthread_join(p->monitor_th, NULL);
+	pthread_join(p->monitor_th, NULL);
 	pthread_mutex_destroy(&p->sync_lock);
 	pthread_mutex_destroy(&p->write_lock);
 	i = 0;
