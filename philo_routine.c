@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:10:59 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 16:01:28 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 16:04:56 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,6 @@ void	*philo_routine(void *data)
 	get_or_increment_threads_ready(philo->params, SET);
 	wait_for_all_threads(philo->params);
 	wait_for_time_sync(philo->params);
-	write_status(philo, THINK, 0);
 	if (philo->index % 2 == 0)
 		ft_usleep(10);
 	while (get_or_set_is_running(philo->params, -1, GET) == 1)
