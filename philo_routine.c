@@ -1,12 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   philo_routine.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:10:59 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 16:11:46 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 15:21:01 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +54,9 @@ void	*philo_routine(void *data)
 	t_philo	*philo;
 
 	philo = (t_philo *)data;
+	get_or_increment_threads_ready(philo->params, SET);
+	wait_for_all_threads(philo->params);
+	wait_for_time_sync(philo->params);
 	write_status(philo, THINK, 0);
 	if (philo->index % 2 == 0)
 		ft_usleep(10);

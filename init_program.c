@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:12:42 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 16:51:39 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 15:51:31 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ static t_philo	init_philo(unsigned int i, t_params *p)
 		philo.take_forks = take_forks_from_left;
 	else
 		philo.take_forks = take_forks_from_right;
-	philo.last_meal_time = p->start_time;
+	philo.last_meal_time = 0;
 	philo.meals_counter = 0;
 	philo.left_fork = NULL;
 	philo.params = p;
@@ -64,7 +64,7 @@ static void	init_philos(t_params *p)
 	}
 }
 
-void	init(int argc, char **argv, t_params *p)
+enum e_error	init(int argc, char **argv, t_params *p)
 {
 	p->philo_nbr = ft_atol(argv[1]);
 	p->time_to_die = ft_atol(argv[2]);
@@ -75,11 +75,11 @@ void	init(int argc, char **argv, t_params *p)
 		p->max_nbr_of_meals = UINT_MAX;
 	if (argc == 6)
 		p->max_nbr_of_meals = ft_atol(argv[5]);
-	p->start_time = get_time();
-	pthread_mutex_init(&p->write_lock, NULL);
-	// TODO: protect mutex
-	pthread_mutex_init(&p->sync_lock, NULL);
-	// TODO: protect mutex
+	if (pthread_mutex_init(&p->write_lock, NULL) != 0)
+		return (MUTEX_OR_THREAD_FAILED);
+	if (pthread_mutex_init(&p->sync_lock, NULL) != 0)
+		return (MUTEX_OR_THREAD_FAILED);
 	init_philos(p);
 	pthread_create(&p->monitor_th, NULL, monitor_routine, p);
+	return (NO_ERRORS);
 }

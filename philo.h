@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:28:53 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 17:14:47 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 15:49:50 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ enum					e_error
 	BAD_SLEEP_TIME,
 	BAD_MEALS_NUM,
 	BAD_ARGS_NUMBER,
+	MUTEX_OR_THREAD_FAILED,
 };
 
 enum					e_status
@@ -80,12 +81,14 @@ typedef struct s_params
 {
 	pthread_t			monitor_th;
 	unsigned int		philo_nbr;
+	unsigned int		threads_ready;
 	unsigned long		time_to_die;
 	unsigned long		time_to_eat;
 	unsigned long		time_to_sleep;
 	unsigned long		start_time;
 	unsigned int		max_nbr_of_meals;
 	unsigned int		is_running;
+	bool				time_is_synced;
 	t_philo				philos[MAX_PHILO_NUMBER];
 	t_mtx				sync_lock;
 	t_mtx				write_lock;
@@ -101,6 +104,8 @@ void					ft_putstr_err(char *msg);
 unsigned long			get_time(void);
 unsigned long			diff(unsigned long timestamp);
 void					ft_usleep(unsigned long ms);
+void					wait_for_all_threads(t_params *p);
+void					wait_for_time_sync(t_params *p);
 
 // validation.c
 enum e_error			validate_input(int argc, char **argv);
@@ -115,6 +120,10 @@ unsigned int			get_or_set_is_running(t_params *p, int val,
 							enum e_flag f);
 unsigned int			get_or_set_meals_counter(t_philo *philo, int val,
 							enum e_flag f);
+unsigned int			get_or_increment_threads_ready(t_params *p,
+							enum e_flag f);
+bool					get_or_set_time_is_synced(t_params *p, int val,
+							enum e_flag f);
 
 // philo_routine.c
 void					take_forks_from_left(t_philo *philo);
@@ -125,7 +134,7 @@ void					*philo_routine(void *data);
 void					*monitor_routine(void *data);
 
 // init_program.c
-void					init(int argc, char **argv, t_params *p);
+enum e_error			init(int argc, char **argv, t_params *p);
 
 // cleanup
 void					cleanup(t_params *p);

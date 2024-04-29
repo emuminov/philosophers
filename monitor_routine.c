@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:15:56 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/26 16:35:47 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 15:55:59 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,33 @@ static int	philos_ate_all_their_meals(t_params *p)
 	return (true);
 }
 
+static void	sync_time(t_params *p)
+{
+	unsigned long	start_time;
+	unsigned int	i;
+	
+	start_time = get_time();
+	i = 0;
+	while (i < p->philo_nbr)
+	{
+		pthread_mutex_lock(&p->philos[i].meal_lock);
+		p->philos[i].last_meal_time = start_time;
+		pthread_mutex_unlock(&p->philos[i].meal_lock);
+		i++;
+	}
+	pthread_mutex_lock(&p->sync_lock);
+	p->start_time = start_time;
+	p->time_is_synced = true;
+	pthread_mutex_unlock(&p->sync_lock);
+}
+
 void	*monitor_routine(void *data)
 {
 	t_params	*p;
 
 	p = (t_params *)data;
+	wait_for_all_threads(p);
+	sync_time(p);
 	while (1)
 	{
 		if (one_of_philos_is_dead(p) || philos_ate_all_their_meals(p))
