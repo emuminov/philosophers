@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:15:56 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 16:00:46 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 17:18:58 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,8 @@ void	*monitor_routine(void *data)
 	t_params	*p;
 
 	p = (t_params *)data;
+	if (p->philo_nbr == 1)
+		return (NULL);
 	wait_for_all_threads(p);
 	sync_time(p);
 	while (1)

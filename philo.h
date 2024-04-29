@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:28:53 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 16:23:42 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/04/29 17:20:59 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ enum					e_error
 	BAD_SLEEP_TIME,
 	BAD_MEALS_NUM,
 	BAD_ARGS_NUMBER,
-	MUTEX_OR_THREAD_FAILED,
 };
 
 enum					e_status
@@ -128,13 +127,14 @@ bool					get_or_set_time_is_synced(t_params *p, int val,
 // philo_routine.c
 void					take_forks_from_left(t_philo *philo);
 void					take_forks_from_right(t_philo *philo);
+void					*solo_routine(void *data);
 void					*philo_routine(void *data);
 
 // monitor_routine.c
 void					*monitor_routine(void *data);
 
 // init_program.c
-enum e_error			init(int argc, char **argv, t_params *p);
+void					init(int argc, char **argv, t_params *p);
 
 // cleanup
 void					cleanup(t_params *p);
