@@ -6,23 +6,11 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 15:29:45 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 15:48:27 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/04 17:28:26 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-unsigned int	get_or_set_is_running(t_params *p, int val, enum e_flag f)
-{
-	int	is_running;
-
-	pthread_mutex_lock(&p->sync_lock);
-	if (f == SET)
-		p->is_running = val;
-	is_running = p->is_running;
-	pthread_mutex_unlock(&p->sync_lock);
-	return (is_running);
-}
 
 unsigned int	get_or_set_meals_counter(t_philo *philo, int val, enum e_flag f)
 {
@@ -46,6 +34,18 @@ unsigned int	get_or_increment_threads_ready(t_params *p, enum e_flag f)
 	threads_ready = p->threads_ready;
 	pthread_mutex_unlock(&p->sync_lock);
 	return (threads_ready);
+}
+
+bool	get_or_set_is_running(t_params *p, int val, enum e_flag f)
+{
+	int	is_running;
+
+	pthread_mutex_lock(&p->sync_lock);
+	if (f == SET)
+		p->is_running = val;
+	is_running = p->is_running;
+	pthread_mutex_unlock(&p->sync_lock);
+	return (is_running);
 }
 
 bool	get_or_set_time_is_synced(t_params *p, int val, enum e_flag f)

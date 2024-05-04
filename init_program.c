@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:12:42 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 17:20:57 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/04 20:22:42 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,11 @@ static t_philo	init_philo(unsigned int i, t_params *p)
 {
 	t_philo	philo;
 
-	pthread_mutex_init(&philo.right_fork, NULL);
+	pthread_mutex_init(&philo.right_fork.fork_mtx, NULL);
 	pthread_mutex_init(&philo.meal_lock, NULL);
 	philo.index = i + 1;
-	if (philo.index == p->philo_nbr)
-		philo.take_forks = take_forks_from_left;
-	else
-		philo.take_forks = take_forks_from_right;
+	philo.right_fork.owner = 0;
+	philo.take_forks = take_forks_from_right;
 	philo.last_meal_time = 0;
 	philo.meals_counter = 0;
 	philo.left_fork = NULL;
@@ -75,7 +73,7 @@ void	init(int argc, char **argv, t_params *p)
 	p->time_to_die = ft_atol(argv[2]);
 	p->time_to_eat = ft_atol(argv[3]);
 	p->time_to_sleep = ft_atol(argv[4]);
-	p->is_running = 1;
+	p->is_running = true;
 	if (argc == 5)
 		p->max_nbr_of_meals = UINT_MAX;
 	if (argc == 6)

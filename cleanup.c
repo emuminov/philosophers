@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:02:36 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 18:45:03 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/04 18:11:44 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void	cleanup(t_params *p)
 	while (i < p->philo_nbr)
 	{
 		pthread_mutex_destroy(&p->philos[i].meal_lock);
-		pthread_mutex_destroy(p->philos[i].left_fork);
+		pthread_mutex_destroy(&p->philos[i].right_fork.fork_mtx);
 		i++;
 	}
 }

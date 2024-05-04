@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:28:53 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 17:20:59 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/04 20:23:07 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,12 @@ enum					e_flag
 typedef pthread_mutex_t	t_mtx;
 typedef struct s_params	t_params;
 
+typedef struct s_fork
+{
+	unsigned int		owner;
+	t_mtx				fork_mtx;
+}						t_fork;
+
 typedef struct s_philo
 {
 	pthread_t			th;
@@ -70,8 +76,8 @@ typedef struct s_philo
 	unsigned int		meals_counter;
 	unsigned long		last_meal_time;
 	t_mtx				meal_lock;
-	t_mtx				right_fork;
-	t_mtx				*left_fork;
+	t_fork				right_fork;
+	t_fork				*left_fork;
 	void				(*take_forks)(struct s_philo *philo);
 	t_params			*params;
 }						t_philo;
@@ -84,9 +90,9 @@ typedef struct s_params
 	unsigned long		time_to_die;
 	unsigned long		time_to_eat;
 	unsigned long		time_to_sleep;
-	unsigned long		start_time;
 	unsigned int		max_nbr_of_meals;
-	unsigned int		is_running;
+	unsigned long		start_time;
+	bool				is_running;
 	bool				time_is_synced;
 	t_philo				philos[MAX_PHILO_NUMBER];
 	t_mtx				sync_lock;
@@ -115,17 +121,16 @@ void					write_status(t_philo *philo, enum e_status s,
 void					write_error(enum e_error e);
 
 // get_set.c
-unsigned int			get_or_set_is_running(t_params *p, int val,
-							enum e_flag f);
 unsigned int			get_or_set_meals_counter(t_philo *philo, int val,
 							enum e_flag f);
 unsigned int			get_or_increment_threads_ready(t_params *p,
+							enum e_flag f);
+bool					get_or_set_is_running(t_params *p, int val,
 							enum e_flag f);
 bool					get_or_set_time_is_synced(t_params *p, int val,
 							enum e_flag f);
 
 // philo_routine.c
-void					take_forks_from_left(t_philo *philo);
 void					take_forks_from_right(t_philo *philo);
 void					*solo_routine(void *data);
 void					*philo_routine(void *data);

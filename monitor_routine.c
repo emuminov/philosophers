@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:15:56 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/30 13:16:40 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/04 18:07:56 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,7 @@ static bool	philo_should_be_dead(t_philo *philo, t_params *p)
 	pthread_mutex_lock(&philo->meal_lock);
 	last_meal_time_diff = diff(philo->last_meal_time);
 	pthread_mutex_unlock(&philo->meal_lock);
-	if (last_meal_time_diff >= p->time_to_die)
-		return (true);
-	return (false);
+	return (last_meal_time_diff >= p->time_to_die);
 }
 
 static bool	one_of_philos_is_dead(t_params *p)
@@ -33,7 +31,7 @@ static bool	one_of_philos_is_dead(t_params *p)
 	{
 		if (philo_should_be_dead(&p->philos[i], p))
 		{
-			get_or_set_is_running(p, 0, SET);
+			get_or_set_is_running(p, false, SET);
 			write_status(&p->philos[i], DIE, 1);
 			return (true);
 		}
@@ -54,7 +52,7 @@ static int	philos_ate_all_their_meals(t_params *p)
 			return (false);
 		i++;
 	}
-	get_or_set_is_running(p, 0, SET);
+	get_or_set_is_running(p, false, SET);
 	return (true);
 }
 
