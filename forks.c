@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 13:04:11 by emuminov          #+#    #+#             */
-/*   Updated: 2024/05/06 15:04:56 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/06 15:49:43 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ void	take_forks_from_right(t_philo *philo)
 	else if (philo->right_fork.owner != philo->index)
 	{
 		pthread_mutex_unlock(&philo->right_fork.fork_mtx);
-		ft_usleep(1);
+		usleep(150);
 		return ;
 	}
 	pthread_mutex_unlock(&philo->right_fork.fork_mtx);
@@ -32,9 +32,13 @@ void	take_forks_from_right(t_philo *philo)
 	{
 		philo->left_fork->owner = philo->index;
 		write_status(philo, FORK, 0);
+		pthread_mutex_unlock(&philo->left_fork->fork_mtx);
 	}
-	pthread_mutex_unlock(&philo->left_fork->fork_mtx);
-	ft_usleep(1);
+	else
+	{
+		pthread_mutex_unlock(&philo->left_fork->fork_mtx);
+		usleep(150);
+	}
 }
 
 void	release_forks(t_philo *philo)
