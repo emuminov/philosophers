@@ -1,5 +1,5 @@
 #compilation vars-------------
-CFLAGS=-Wall -Wextra -Werror
+CFLAGS=-Wall -Wextra -Werror -O2
 
 #names and folders------------
 NAME=philo
@@ -10,6 +10,7 @@ get_set.c \
 init_program.c \
 main.c \
 monitor_routine.c \
+forks.c \
 philo_routine.c \
 time_utils.c \
 validation.c \

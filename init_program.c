@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 16:12:42 by emuminov          #+#    #+#             */
-/*   Updated: 2024/05/04 20:22:42 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/06 13:59:07 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ static t_philo	init_philo(unsigned int i, t_params *p)
 	pthread_mutex_init(&philo.meal_lock, NULL);
 	philo.index = i + 1;
 	philo.right_fork.owner = 0;
+	philo.right_fork.index = philo.index;
 	philo.take_forks = take_forks_from_right;
 	philo.last_meal_time = 0;
 	philo.meals_counter = 0;

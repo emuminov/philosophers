@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 15:20:05 by emuminov          #+#    #+#             */
-/*   Updated: 2024/04/29 15:57:18 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/06 14:42:04 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ unsigned long	get_time(void)
 	struct timeval	tv;
 
 	gettimeofday(&tv, NULL);
-	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+	return (tv.tv_sec * 1000 + tv.tv_usec * 0.001);
 }
 
 unsigned long	diff(unsigned long timestamp)
@@ -31,6 +31,7 @@ void	ft_usleep(unsigned long ms)
 	unsigned long	curr;
 
 	start = get_time();
+	usleep(ms * 800);
 	curr = get_time();
 	while ((curr - start) < ms)
 	{

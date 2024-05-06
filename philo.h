@@ -6,7 +6,7 @@
 /*   By: emuminov <emuminov@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:28:53 by emuminov          #+#    #+#             */
-/*   Updated: 2024/05/04 20:23:07 by emuminov         ###   ########.fr       */
+/*   Updated: 2024/05/06 13:56:55 by emuminov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ typedef struct s_params	t_params;
 typedef struct s_fork
 {
 	unsigned int		owner;
+	unsigned int		index;
 	t_mtx				fork_mtx;
 }						t_fork;
 
@@ -130,8 +131,13 @@ bool					get_or_set_is_running(t_params *p, int val,
 bool					get_or_set_time_is_synced(t_params *p, int val,
 							enum e_flag f);
 
-// philo_routine.c
+// forks.c
 void					take_forks_from_right(t_philo *philo);
+void					take_forks_from_left(t_philo *philo);
+bool					has_both_forks(t_philo *philo);
+void					release_forks(t_philo *philo);
+
+// philo_routine.c
 void					*solo_routine(void *data);
 void					*philo_routine(void *data);
 
